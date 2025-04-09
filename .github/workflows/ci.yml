@@ -83,5 +83,6 @@ jobs:
           AWS_DEFAULT_REGION=${{ secrets.AWS_DEFAULT_REGION }} \
           S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }} \
           RAW_PATH=$RAW_PATH \
+          DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }} \
           docker-compose -f docker-compose.cd.yml up -d
         EOF
