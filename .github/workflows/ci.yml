@@ -7,8 +7,9 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  install-requirements:
     runs-on: ubuntu-latest
+    environment: prd
 
     steps:
     - name: Checkout repository
@@ -24,7 +25,11 @@ jobs:
         python -m venv venv
         source venv/bin/activate
         pip install -r requirements.txt
-
+  
+  test:
+    runs-on: ubuntu-latest
+    environment: prd
+    steps:
     - name: Run tests
       run: |
         source venv/bin/activate
@@ -39,7 +44,10 @@ jobs:
       run: |
         source venv/bin/activate
         make lint
-
+  build:
+    runs-on: ubuntu-latest
+    environment: prd
+    steps:  
     - name: Build Docker image
       run: |
         docker build -t ai-hiring-matcher .
@@ -49,6 +57,6 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       run: |
-        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-        docker tag ai-hiring-matcher $DOCKER_USERNAME/ai-hiring-matcher
-        docker push $DOCKER_USERNAME/ai-hiring-matcher
+        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        docker tag ai-hiring-matcher "$DOCKER_USERNAME"/ai-hiring-matcher
+        docker push "$DOCKER_USERNAME"/ai-hiring-matcher
