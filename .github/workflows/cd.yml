@@ -1,0 +1,39 @@
+name: CD Pipeline for EC2
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: # Permite disparar manualmente o workflow.
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: prd
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up SSH key
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+
+    - name: Transfer files to EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} "mkdir -p ~/app/src/"
+        scp -o StrictHostKeyChecking=no -r ./src/* ec2-user@${{ secrets.EC2_HOST }}:~/app/src/
+        scp -o StrictHostKeyChecking=no docker-compose.cd.yml ec2-user@${{ secrets.EC2_HOST }}:~/app/
+
+    - name: Run Docker Compose on EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+          cd ~/app/
+          docker-compose down || true
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+          AWS_DEFAULT_REGION=${{ secrets.AWS_DEFAULT_REGION }} \
+          S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }} \
+          RAW_PATH=$RAW_PATH \
+          docker-compose -f docker-compose.cd.yml up -d
+        EOF
