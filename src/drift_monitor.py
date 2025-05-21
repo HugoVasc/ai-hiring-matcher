@@ -18,6 +18,8 @@ def simulate_production_data(df: pd.DataFrame, fraction: float = 0.1) -> pd.Data
 def run_drift_report():
     logger.info("Carregando dados de treinamento do S3...")
     df_train = load_df_from_s3(DF_MODEL_KEY)
+    df_train = df_train.dropna(axis=1, how='all')
+
 
     logger.info("Simulando dados de produção...")
     df_prod = simulate_production_data(df_train)
