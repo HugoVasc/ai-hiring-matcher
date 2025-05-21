@@ -24,7 +24,7 @@ def load_df_from_s3(key: str) -> pd.DataFrame:
     """
     response = s3.get_object(Bucket=BUCKET, Key=key)
     content = response["Body"].read().decode("utf-8")
-    return pd.read_csv(StringIO(content))
+    return pd.read_csv(StringIO(content), sep=',', quotechar='"')
 
 
 def load_model_from_s3(s3_path: str):
